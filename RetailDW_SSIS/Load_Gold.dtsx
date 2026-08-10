@@ -11,8 +11,8 @@
   DTS:LocaleID="17417"
   DTS:ObjectName="Package1"
   DTS:PackageType="5"
-  DTS:VersionBuild="6"
-  DTS:VersionGUID="{5F61647C-0120-4FB2-8E65-D459F21B897B}">
+  DTS:VersionBuild="7"
+  DTS:VersionGUID="{5AD609CB-1130-4D69-B92F-B7C55542C25D}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -45,7 +45,7 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{C77421F7-1530-4B68-9D53-534F1D34CF24}"
-          SQLTask:SqlStatementSource="EXEC etl.usp_Load_DimCustomer;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="EXEC gold.usp_Load_Customer_Gold" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -139,10 +139,6 @@
       <GraphLayout
         Capacity="8" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
         <NodeLayout
-          Size="188,41.6"
-          Id="Package\EST_Load_DimProduct"
-          TopLeft="311.666649637952,92.7333326884773" />
-        <NodeLayout
           Size="196.8,41.6"
           Id="Package\EST_Load_DimCustomer"
           TopLeft="302.49998347213,162.933332200315" />
@@ -150,6 +146,10 @@
           Size="173.6,41.6"
           Id="Package\EST_Load_DimDate"
           TopLeft="302.499983472129,232.266665051513" />
+        <NodeLayout
+          Size="188,41.6"
+          Id="Package\EST_Load_DimProduct"
+          TopLeft="311.666649637952,92.7333326884773" />
         <NodeLayout
           Size="179.2,41.6"
           Id="Package\EST_Load_FactSales"
