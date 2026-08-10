@@ -87,6 +87,59 @@ Contains packages for:
 
 ---
 
+## Audit & Logging Architecture
+
+Every stage of the pipeline writes to the `audit` schema so each run is traceable
+end-to-end. There is no single shared log table — each module logs to its own
+table, and the Gold layer uses a shared execution log since it has no rejection
+concept.
+
+| Table | Used by | Purpose |
+|---|---|---|
+| `audit.Sales_Pipeline_Log` | Sales Bronze + Silver | RowsIn / RowsOut / RowsRejected / rejection breakdown per run |
+| `audit.Customer_Pipeline_Log` | Customer Bronze + Silver | Same, for the Customer module |
+| `audit.Product_Pipeline_Log` | Product Bronze + Silver | Same, for the Product module |
+| `audit.Sales_Rejected` | Sales Silver | Row-level detail of rejected sales records with reason |
+| `audit.Customer_Rejected` | Customer Silver | Row-level detail of rejected customer records with reason |
+| `audit.Product_Rejected` | Product Silver | Row-level detail of rejected product records with reason |
+| `audit.Execution_Log` | All Gold procedures | LayerName / ModuleName / ProcedureName / RowsAffected / ExecutedAt |
+
+Every `usp_Load_*` procedure inserts one row into its corresponding log table
+automatically at the end of a successful run — nothing needs to be logged
+manually.
+
+### Stored Procedures (`etl` schema)
+
+**Bronze**
+- `usp_Load_Customer_Bronze`
+- `usp_Load_Sales_Bronze`
+- `usp_Load_Product_Bronze`
+
+**Silver**
+- `usp_Load_Customer_Silver`
+- `usp_Load_Sales_Silver`
+- `usp_Load_Product_Silver`
+
+**Gold**
+- `usp_Load_DimCustomer`
+- `usp_Load_DimProduct`
+- `usp_Load_DimDate`
+- `usp_Load_FactSales`
+
+### Verification performed
+
+- **Idempotency:** every procedure produces identical row counts across
+  repeated executions (Bronze → Silver → Gold).
+- **Referential integrity:** `gold.FactSales` has zero orphaned
+  `ProductKey` / `CustomerKey` / `DateKey` — every fact row resolves to a
+  valid dimension row.
+- **Data quality checks:** no duplicate natural keys (`OrderID`,
+  `CustomerID`, `ProductCategory + ProductName`), no out-of-range values
+  (negative shipping cost, invalid age, non-positive quantity, etc.) in any
+  Silver or Gold table.
+
+---
+
 ## Setup Instructions
 
 ### 1. Restore SQL Server database
@@ -132,6 +185,10 @@ Run in this order:
 3. Load_Silver
 4. Load_Gold
 
+Each procedure writes its own audit trail automatically — see
+[Audit & Logging Architecture](#audit--logging-architecture) above to query
+run history afterward.
+
 ---
 
 ## Notes
@@ -139,8 +196,11 @@ Run in this order:
 - Always pull before pushing.
 - Do not modify another member's module without discussion.
 - Commit small changes with meaningful commit messages.
+- Always confirm you are connected to the `RetailDW` database (not a
+  differently-named database) before running or modifying any script —
+  check `SELECT DB_NAME();` if unsure.
 
-Example:
+Example commit messages:
 
 ```
 Added Gold FactSales procedure
@@ -148,10 +208,12 @@ Added Gold FactSales procedure
 Fixed Customer Silver transformation
 
 Updated SSIS Load_Gold package
+
+Add audit logging to all ETL procedures across Bronze/Silver/Gold layers
 ```
 
 ---
 
 ## Version
 
-Version 1.0
+Version 1.1
